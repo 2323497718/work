@@ -47,3 +47,8 @@ CREATE TABLE IF NOT EXISTS orders (
     CONSTRAINT fk_order_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_order_product FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
+INSERT INTO products (id, product_name, price, status)
+VALUES (1, 'Demo Product A', 99.00, 1),
+       (2, 'Demo Product B', 199.00, 1)
+ON DUPLICATE KEY UPDATE product_name = VALUES(product_name), price = VALUES(price), status = VALUES(status);

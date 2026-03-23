@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高并发读 - 动静分离演示</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<main class="container">
+    <h1>Nginx 动静分离 + 负载均衡演示</h1>
+    <p>当前页面是静态资源，由 Nginx 直接返回。</p>
+
+    <section class="card">
+        <h2>商品详情（动态 API）</h2>
+        <input id="productId" value="1" />
+        <button id="queryBtn">查询 /api/products/{id}</button>
+        <pre id="result"></pre>
+    </section>
+
+    <section class="card">
+        <h2>后端实例请求统计</h2>
+        <button id="statsBtn">查询 /api/system/stats</button>
+        <pre id="stats"></pre>
+    </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>
