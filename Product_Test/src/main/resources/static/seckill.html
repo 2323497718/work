@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秒杀下单</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 24px; }
+        .card { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.08); padding: 24px; }
+        .row { margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+        input { padding: 10px; border: 1px solid #d7dce6; border-radius: 6px; min-width: 180px; }
+        button { padding: 10px 14px; border: 0; border-radius: 6px; background: #2b6cff; color: #fff; cursor: pointer; }
+        pre { background: #0b1020; color: #d9e3ff; border-radius: 6px; padding: 10px; min-height: 40px; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>秒杀下单演示</h1>
+    <div class="row">
+        <input id="userId" value="1" placeholder="userId">
+        <input id="productId" value="1" placeholder="productId">
+        <button id="submitBtn">提交秒杀</button>
+    </div>
+    <pre id="submitResult"></pre>
+
+    <div class="row">
+        <input id="orderNo" placeholder="订单号">
+        <button id="queryOrderBtn">按订单号查询</button>
+        <button id="payBtn">支付订单</button>
+        <button id="cancelBtn">取消订单</button>
+    </div>
+    <pre id="orderResult"></pre>
+
+    <div class="row">
+        <input id="queryUserId" value="1" placeholder="userId">
+        <input id="queryProductId" value="1" placeholder="productId">
+        <button id="queryUserBtn">按用户+商品查询</button>
+    </div>
+    <pre id="userResult"></pre>
+</div>
+<script>
+    function pretty(o) { return JSON.stringify(o, null, 2); }
+    async function req(url, init) { const r = await fetch(url, init); return await r.json(); }
+
+    document.getElementById("submitBtn").onclick = async () => {
+        const userId = document.getElementById("userId").value.trim();
+        const productId = document.getElementById("productId").value.trim();
+        const box = document.getElementById("submitResult");
+        try {
+            const data = await req(`/api/seckill/order?userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(productId)}`, { method: "POST" });
+            box.textContent = pretty(data);
+            if (data.code === 0 && data.data && data.data.orderNo) {
+                document.getElementById("orderNo").value = data.data.orderNo;
+            }
+        } catch (e) {
+            box.textContent = "请求失败: " + e.message;
+        }
+    };
+
+    document.getElementById("queryOrderBtn").onclick = async () => {
+        const orderNo = document.getElementById("orderNo").value.trim();
+        const box = document.getElementById("orderResult");
+        try {
+            const data = await req(`/api/seckill/orders/${encodeURIComponent(orderNo)}`);
+            box.textContent = pretty(data);
+        } catch (e) {
+            box.textContent = "请求失败: " + e.message;
+        }
+    };
+
+    document.getElementById("payBtn").onclick = async () => {
+        const orderNo = document.getElementById("orderNo").value.trim();
+        const box = document.getElementById("orderResult");
+        try {
+            const data = await req(`/api/seckill/pay?orderNo=${encodeURIComponent(orderNo)}`, { method: "POST" });
+            box.textContent = pretty(data);
+        } catch (e) {
+            box.textContent = "请求失败: " + e.message;
+        }
+    };
+
+    document.getElementById("cancelBtn").onclick = async () => {
+        const orderNo = document.getElementById("orderNo").value.trim();
+        const box = document.getElementById("orderResult");
+        try {
+            const data = await req(`/api/seckill/cancel?orderNo=${encodeURIComponent(orderNo)}`, { method: "POST" });
+            box.textContent = pretty(data);
+        } catch (e) {
+            box.textContent = "请求失败: " + e.message;
+        }
+    };
+
+    document.getElementById("queryUserBtn").onclick = async () => {
+        const userId = document.getElementById("queryUserId").value.trim();
+        const productId = document.getElementById("queryProductId").value.trim();
+        const box = document.getElementById("userResult");
+        try {
+            const data = await req(`/api/seckill/orders/user/${encodeURIComponent(userId)}?productId=${encodeURIComponent(productId)}`);
+            box.textContent = pretty(data);
+        } catch (e) {
+            box.textContent = "请求失败: " + e.message;
+        }
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品管理</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 24px; }
+        .container { max-width: 860px; margin: 0 auto; }
+        .card { background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.08); padding: 18px; margin-bottom: 16px; }
+        h1, h2 { margin-top: 0; }
+        .row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        input { padding: 10px; border: 1px solid #d7dce6; border-radius: 6px; min-width: 180px; }
+        button { padding: 10px 14px; border: 0; border-radius: 6px; background: #2b6cff; color: #fff; cursor: pointer; }
+        pre { background: #0b1020; color: #d9e3ff; border-radius: 6px; padding: 10px; overflow-x: auto; min-height: 44px; }
+        .nav { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav">
+        <a href="/register.html">注册</a> |
+        <a href="/login.html">登录</a> |
+        <a href="/seckill.html">秒杀</a>
+    </div>
+    <h1>商品页面</h1>
+
+    <div class="card">
+        <h2>新增商品</h2>
+        <div class="row">
+            <input id="createName" placeholder="商品名，如 iPhone">
+            <input id="createPrice" placeholder="价格，如 6999">
+            <input id="createStatus" placeholder="状态，默认1" value="1">
+            <button id="createBtn">新增</button>
+        </div>
+        <pre id="createResult"></pre>
+    </div>
+
+    <div class="card">
+        <h2>按ID查询详情</h2>
+        <div class="row">
+            <input id="detailId" placeholder="商品ID" value="1">
+            <button id="detailBtn">查询详情</button>
+        </div>
+        <pre id="detailResult"></pre>
+    </div>
+
+    <div class="card">
+        <h2>关键词搜索</h2>
+        <div class="row">
+            <input id="searchKeyword" placeholder="关键词，如 Demo">
+            <button id="searchBtn">搜索</button>
+        </div>
+        <pre id="searchResult"></pre>
+    </div>
+</div>
+
+<script>
+    function pretty(obj) {
+        return JSON.stringify(obj, null, 2);
+    }
+
+    async function request(url, options) {
+        const resp = await fetch(url, options);
+        return await resp.json();
+    }
+
+    document.getElementById("createBtn").addEventListener("click", async () => {
+        const payload = {
+            productName: document.getElementById("createName").value.trim(),
+            price: Number(document.getElementById("createPrice").value),
+            status: Number(document.getElementById("createStatus").value || "1")
+        };
+        const box = document.getElementById("createResult");
+        try {
+            const data = await request("/api/products", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            box.textContent = pretty(data);
+        } catch (e) {
+            box.textContent = "请求失败: " + e.message;
+        }
+    });
+
+    document.getElementById("detailBtn").addEventListener("click", async () => {
+        const id = document.getElementById("detailId").value.trim();
+        const box = document.getElementById("detailResult");
+        try {
+            const data = await request("/api/products/" + id);
+            box.textContent = pretty(data);
+        } catch (e) {
+            box.textContent = "请求失败: " + e.message;
+        }
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+        const keyword = encodeURIComponent(document.getElementById("searchKeyword").value.trim());
+        const box = document.getElementById("searchResult");
+        try {
+            const data = await request("/api/products/search?keyword=" + keyword);
+            box.textContent = pretty(data);
+        } catch (e) {
+            box.textContent = "请求失败: " + e.message;
+        }
+    });
+</script>
+</body>
+</html>

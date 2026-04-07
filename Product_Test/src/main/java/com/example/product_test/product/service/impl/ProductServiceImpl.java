@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -67,6 +68,20 @@ public class ProductServiceImpl implements ProductService {
             return null;
         }
         return decodeProduct(retry);
+    }
+
+    @Override
+    public List<Product> searchProducts(String keyword) {
+        return productMapper.searchByKeyword(keyword == null ? "" : keyword.trim());
+    }
+
+    @Override
+    public Product createProduct(Product product) {
+        if (product.getStatus() == null) {
+            product.setStatus(1);
+        }
+        productMapper.insert(product);
+        return product;
     }
 
     private String encodeProduct(Product product) {

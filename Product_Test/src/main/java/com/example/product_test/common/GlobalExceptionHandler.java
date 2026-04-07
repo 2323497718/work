@@ -1,6 +1,7 @@
 package com.example.product_test.common;
 
 import org.springframework.validation.FieldError;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,5 +19,10 @@ public class GlobalExceptionHandler {
         FieldError fieldError = ex.getBindingResult().getFieldError();
         String message = fieldError == null ? "invalid request" : fieldError.getDefaultMessage();
         return ApiResponse.fail(message);
+    }
+
+    @ExceptionHandler(CannotGetJdbcConnectionException.class)
+    public ApiResponse<Void> handleDbConnection(CannotGetJdbcConnectionException ex) {
+        return ApiResponse.fail("database connection failed, please check DB username/password/url");
     }
 }

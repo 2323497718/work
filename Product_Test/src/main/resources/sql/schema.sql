@@ -44,11 +44,25 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_order_user(user_id),
     INDEX idx_order_product(product_id),
+    UNIQUE KEY uk_user_product(user_id, product_id),
     CONSTRAINT fk_order_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_order_product FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+CREATE TABLE IF NOT EXISTS tx_message_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    msg_key VARCHAR(128) NOT NULL UNIQUE,
+    topic VARCHAR(128) NOT NULL,
+    consumed TINYINT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO products (id, product_name, price, status)
 VALUES (1, 'Demo Product A', 99.00, 1),
        (2, 'Demo Product B', 199.00, 1)
 ON DUPLICATE KEY UPDATE product_name = VALUES(product_name), price = VALUES(price), status = VALUES(status);
+
+INSERT INTO inventory (product_id, total_stock, available_stock, locked_stock, version)
+VALUES (1, 100, 100, 0, 0),
+       (2, 100, 100, 0, 0)
+ON DUPLICATE KEY UPDATE total_stock = VALUES(total_stock), available_stock = VALUES(available_stock), locked_stock = VALUES(locked_stock), version = VALUES(version);
