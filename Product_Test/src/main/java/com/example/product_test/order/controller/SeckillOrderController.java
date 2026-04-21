@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -26,10 +25,11 @@ public class SeckillOrderController {
     @PostMapping("/order")
     public ApiResponse<Map<String, Object>> submit(@RequestParam Long userId, @RequestParam Long productId) {
         String orderNo = seckillOrderService.submitSeckill(userId, productId);
-        Map<String, Object> result = new HashMap<>();
-        result.put("orderNo", orderNo);
-        result.put("status", "PENDING");
-        result.put("message", "request accepted, wait async order creation");
+        Map<String, Object> result = Map.of(
+                "orderNo", orderNo,
+                "status", "PENDING",
+                "message", "request accepted, wait async order creation"
+        );
         return ApiResponse.success(result);
     }
 

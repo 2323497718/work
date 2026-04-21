@@ -76,7 +76,13 @@ public class SeckillOrderServiceImpl implements SeckillOrderService {
         message.setOrderNo(orderNo);
         message.setUserId(userId);
         message.setProductId(productId);
-        producer.sendSeckill(message);
+        try {
+            producer.sendSeckill(message);
+        } catch (Exception ex) {
+            redisTemplate.opsForValue().increment(stockKey);
+            redisTemplate.delete(onceKey);
+            throw new IllegalStateException("submit seckill failed, message send error", ex);
+        }
 
         return orderNo;
     }

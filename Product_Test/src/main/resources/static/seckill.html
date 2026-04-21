@@ -3,104 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>秒杀下单</title>
+    <title>限时秒杀 - 极速购</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 24px; }
-        .card { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.08); padding: 24px; }
-        .row { margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-        input { padding: 10px; border: 1px solid #d7dce6; border-radius: 6px; min-width: 180px; }
-        button { padding: 10px 14px; border: 0; border-radius: 6px; background: #2b6cff; color: #fff; cursor: pointer; }
-        pre { background: #0b1020; color: #d9e3ff; border-radius: 6px; padding: 10px; min-height: 40px; }
+        :root {
+            --primary: #ff5000;
+            --primary-hover: #ff6a00;
+            --bg: #f5f7fa;
+            --card-bg: #fff;
+            --text-main: #333;
+            --text-sub: #999;
+            --danger: #ff4d4f;
+            --success: #07c160;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; background: var(--bg); color: var(--text-main); }
+
+        /* 顶部导航 */
+        .header {
+            background: linear-gradient(135deg, #ff5000, #ff9100);
+            color: #fff;
+            padding: 14px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 16px rgba(255,80,0,.35);
+        }
+        .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+        .logo { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+        .search-bar {
+            flex: 1;
+            max-width: 640px;
+            display: flex;
+            height: 36px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .search-bar input { flex: 1; border: none; padding: 0 14px; font-size: 14px; outline: none; }
+        .search-bar button { background: #fff; color: var(--primary); border: none; padding: 0 18px; font-weight: 600; cursor: pointer; }
+        .nav-links a { color: #fff; text-decoration: none; margin-left: 16px; font-size: 14px; opacity: .9; }
+
+        /* 倒计时横幅 */
+        .banner {
+            background: linear-gradient(135deg, #ff4a00, #ff9100);
+            color: #fff;
+            padding: 24px 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        .cbox { background: rgba(0,0,0,.25); padding: 6px 10px; border-radius: 8px; min-width: 48px; }
+
+        /* 主容器 */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+        .section-title { font-size: 18px; font-weight: 700; margin: 24px 0 12px; padding-left: 10px; border-left: 4px solid var(--primary); }
+
+        /* 商品网格 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,.08);
+            transition: transform .2s, box-shadow .2s;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(0,0,0,.12); }
+        .img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: linear-gradient(45deg,#f0f0f0,#e6e8eb); }
+        .body { padding: 14px; }
+        .title { font-size: 15px; font-weight: 700; line-height: 1.4; height: 42px; overflow: hidden; }
+        .tags { margin: 6px 0; display: flex; gap: 6px; flex-wrap: wrap; }
+        .tag { font-size: 11px; color: var(--primary); border: 1px solid var(--primary); padding: 2px 6px; border-radius: 6px; }
+        .row { display: flex; align-items: baseline; gap: 6px; margin-top: 8px; }
+        .price { color: var(--primary); font-size: 20px; font-weight: 800; }
+        .price small { font-size: 12px; }
+        .orig { color: var(--text-sub); font-size: 12px; text-decoration: line-through; }
+        .stock-bar { margin-top: 8px; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+        .stock-fill { height: 100%; background: linear-gradient(90deg, #ff9100, #ff5000); border-radius: 4px; transition: width .3s; }
+        .meta { color: var(--text-sub); font-size: 12px; margin-top: 6px; display: flex; justify-content: space-between; }
+
+        /* 秒杀按钮 */
+        .seckill-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: filter .2s, transform .1s;
+        }
+        .seckill-btn.primary { background: linear-gradient(135deg, #ff5000, #ff9100); color: #fff; }
+        .seckill-btn:disabled { background: #ccc; color: #999; cursor: not-allowed; }
+        .seckill-btn:active:not(:disabled) { transform: scale(.98); }
+
+        /* 订单结果区域 */
+        .panel {
+            max-width: 860px;
+            margin: 24px auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 18px;
+        }
+        .panel h3 { font-size: 16px; margin-bottom: 12px; }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        input {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            min-width: 160px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        pre {
+            background: #0b1020;
+            color: #d9e3ff;
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 40px;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 10px;
+            display: none;
+        }
+        pre.show { display: block; }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .header-inner { flex-wrap: wrap; gap: 8px; }
+            .search-bar { order: 3; flex: 100%; max-width: none; }
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .body { padding: 10px; }
+            .title { font-size: 13px; height: 36px; }
+        }
     </style>
 </head>
 <body>
-<div class="card">
-    <h1>秒杀下单演示</h1>
-    <div class="row">
-        <input id="userId" value="1" placeholder="userId">
-        <input id="productId" value="1" placeholder="productId">
-        <button id="submitBtn">提交秒杀</button>
-    </div>
-    <pre id="submitResult"></pre>
 
-    <div class="row">
-        <input id="orderNo" placeholder="订单号">
-        <button id="queryOrderBtn">按订单号查询</button>
-        <button id="payBtn">支付订单</button>
-        <button id="cancelBtn">取消订单</button>
+<div class="header">
+    <div class="header-inner">
+        <div class="logo">🛒 极速购</div>
+        <div class="search-bar">
+            <input id="searchKeyword" placeholder="搜索商品，如 Demo">
+            <button id="searchBtn">搜索</button>
+        </div>
+        <div class="nav-links">
+            <a href="/product.html">商品广场</a>
+        </div>
     </div>
-    <pre id="orderResult"></pre>
-
-    <div class="row">
-        <input id="queryUserId" value="1" placeholder="userId">
-        <input id="queryProductId" value="1" placeholder="productId">
-        <button id="queryUserBtn">按用户+商品查询</button>
-    </div>
-    <pre id="userResult"></pre>
 </div>
+
+<div class="banner">
+    <div>⚡ 限时秒杀 · 每日 10:00 / 20:00 场</div>
+    <div class="countdown" id="countdown">距结束 00:00:00</div>
+</div>
+
+<div class="container">
+    <div class="section-title">⚡ 秒杀场次</div>
+    <div class="grid" id="seckillGrid">加载中...</div>
+</div>
+
+<div class="container">
+    <div class="panel">
+        <h3>📦 订单操作</h3>
+        <div class="row">
+            <input id="userId" value="1" placeholder="用户ID">
+            <input id="productId" value="1" placeholder="商品ID">
+            <button id="submitBtn" class="btn-primary">提交秒杀</button>
+        </div>
+        <pre id="submitResult"></pre>
+
+        <div class="row">
+            <input id="orderNo" placeholder="订单号（提交后自动填充）">
+            <button id="queryOrderBtn" class="btn-secondary">按订单号查询</button>
+            <button id="payBtn" class="btn-primary">支付订单</button>
+            <button id="cancelBtn" class="btn-danger">取消订单</button>
+        </div>
+        <pre id="orderResult"></pre>
+
+        <div class="row">
+            <input id="queryUserId" value="1" placeholder="用户ID">
+            <input id="queryProductId" value="1" placeholder="商品ID">
+            <button id="queryUserBtn" class="btn-secondary">按用户+商品查询</button>
+        </div>
+        <pre id="userResult"></pre>
+    </div>
+</div>
+
 <script>
-    function pretty(o) { return JSON.stringify(o, null, 2); }
-    async function req(url, init) { const r = await fetch(url, init); return await r.json(); }
+function pretty(o) { return JSON.stringify(o, null, 2); }
+async function req(url, init) { const r = await fetch(url, init); return await r.json(); }
 
-    document.getElementById("submitBtn").onclick = async () => {
-        const userId = document.getElementById("userId").value.trim();
-        const productId = document.getElementById("productId").value.trim();
-        const box = document.getElementById("submitResult");
-        try {
-            const data = await req(`/api/seckill/order?userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(productId)}`, { method: "POST" });
-            box.textContent = pretty(data);
-            if (data.code === 0 && data.data && data.data.orderNo) {
-                document.getElementById("orderNo").value = data.data.orderNo;
-            }
-        } catch (e) {
-            box.textContent = "请求失败: " + e.message;
-        }
-    };
+/* 倒计时 */
+function startCountdown() {
+    const el = document.getElementById('countdown');
+    let t = Math.floor(Date.now() / 1000) + 3600;
+    setInterval(() => {
+        t--;
+        if (t < 0) t = 3600;
+        const h = Math.floor(t / 3600).toString().padStart(2, '0');
+        const m = Math.floor((t % 3600) / 60).toString().padStart(2, '0');
+        const s = (t % 60).toString().padStart(2, '0');
+        el.textContent = `距结束 ${h}:${m}:${s}`;
+    }, 1000);
+}
+startCountdown();
 
-    document.getElementById("queryOrderBtn").onclick = async () => {
-        const orderNo = document.getElementById("orderNo").value.trim();
-        const box = document.getElementById("orderResult");
-        try {
-            const data = await req(`/api/seckill/orders/${encodeURIComponent(orderNo)}`);
-            box.textContent = pretty(data);
-        } catch (e) {
-            box.textContent = "请求失败: " + e.message;
-        }
-    };
+/* 渲染秒杀卡片 */
+function renderSeckill(list) {
+    const grid = document.getElementById('seckillGrid');
+    if (!list || list.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;padding:24px;text-align:center;color:#999;">暂无秒杀商品</div>';
+        return;
+    }
+    grid.innerHTML = list.map(p => {
+        const stock = p.available_stock || 100;
+        const sold = Math.max(0, 100 - stock);
+        const pct = Math.round((sold / 100) * 100);
+        return `
+        <div class="card">
+            <img class="img" src="https://picsum.photos/400?random=${p.productId}" alt="商品图">
+            <div class="body">
+                <div class="title">${p.productName || '秒杀商品'}</div>
+                <div class="tags"><span class="tag">限时抢购</span></div>
+                <div class="row">
+                    <div class="price"><small>¥</small>${p.price ? p.price.toFixed(2) : '99.00'}</div>
+                    <div class="orig">¥${(p.price*1.2||119).toFixed(2)}</div>
+                </div>
+                <div class="stock-bar"><div class="stock-fill" style="width:${pct}%"></div></div>
+                <div class="meta"><span>已抢 ${pct}%</span><span>剩余 ${stock}</span></div>
+                <button class="seckill-btn primary" onclick="submitSeckill(${p.productId})">立即抢购</button>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
 
-    document.getElementById("payBtn").onclick = async () => {
-        const orderNo = document.getElementById("orderNo").value.trim();
-        const box = document.getElementById("orderResult");
-        try {
-            const data = await req(`/api/seckill/pay?orderNo=${encodeURIComponent(orderNo)}`, { method: "POST" });
-            box.textContent = pretty(data);
-        } catch (e) {
-            box.textContent = "请求失败: " + e.message;
-        }
-    };
+/* 搜索商品（默认取前4个作为秒杀场次） */
+async function loadSeckillProducts() {
+    try {
+        const data = await req('/api/products/search?keyword=');
+        const list = (data.data || []).slice(0, 4).map(p => ({
+            productId: p.id,
+            productName: p.productName,
+            price: p.price,
+            available_stock: 20
+        }));
+        renderSeckill(list);
+    } catch (e) {
+        document.getElementById('seckillGrid').innerHTML = '加载失败';
+    }
+}
+loadSeckillProducts();
 
-    document.getElementById("cancelBtn").onclick = async () => {
-        const orderNo = document.getElementById("orderNo").value.trim();
-        const box = document.getElementById("orderResult");
-        try {
-            const data = await req(`/api/seckill/cancel?orderNo=${encodeURIComponent(orderNo)}`, { method: "POST" });
-            box.textContent = pretty(data);
-        } catch (e) {
-            box.textContent = "请求失败: " + e.message;
+/* 提交秒杀 */
+window.submitSeckill = async (productId) => {
+    const userId = document.getElementById('userId').value.trim();
+    const box = document.getElementById('submitResult');
+    try {
+        const data = await req(`/api/seckill/order?userId=${encodeURIComponent(userId)}&productId=${productId}`, { method: 'POST' });
+        box.textContent = pretty(data);
+        if (data.code === 0 && data.data && data.data.orderNo) {
+            document.getElementById('orderNo').value = data.data.orderNo;
         }
-    };
+    } catch (e) {
+        box.textContent = '请求失败: ' + e.message;
+    }
+};
 
-    document.getElementById("queryUserBtn").onclick = async () => {
-        const userId = document.getElementById("queryUserId").value.trim();
-        const productId = document.getElementById("queryProductId").value.trim();
-        const box = document.getElementById("userResult");
-        try {
-            const data = await req(`/api/seckill/orders/user/${encodeURIComponent(userId)}?productId=${encodeURIComponent(productId)}`);
-            box.textContent = pretty(data);
-        } catch (e) {
-            box.textContent = "请求失败: " + e.message;
-        }
-    };
+/* 其他操作 */
+document.getElementById('queryOrderBtn').onclick = async () => {
+    const orderNo = document.getElementById('orderNo').value.trim();
+    const box = document.getElementById('orderResult');
+    try { box.textContent = pretty(await req('/api/seckill/orders/' + encodeURIComponent(orderNo))); }
+    catch (e) { box.textContent = '请求失败: ' + e.message; }
+};
+document.getElementById('payBtn').onclick = async () => {
+    const orderNo = document.getElementById('orderNo').value.trim();
+    const box = document.getElementById('orderResult');
+    try { box.textContent = pretty(await req('/api/seckill/pay?orderNo=' + encodeURIComponent(orderNo), { method: 'POST' })); }
+    catch (e) { box.textContent = '请求失败: ' + e.message; }
+};
+document.getElementById('cancelBtn').onclick = async () => {
+    const orderNo = document.getElementById('orderNo').value.trim();
+    const box = document.getElementById('orderResult');
+    try { box.textContent = pretty(await req('/api/seckill/cancel?orderNo=' + encodeURIComponent(orderNo), { method: 'POST' })); }
+    catch (e) { box.textContent = '请求失败: ' + e.message; }
+};
+document.getElementById('queryUserBtn').onclick = async () => {
+    const userId = document.getElementById('queryUserId').value.trim();
+    const productId = document.getElementById('queryProductId').value.trim();
+    const box = document.getElementById('userResult');
+    try {
+        box.textContent = pretty(await req('/api/seckill/orders/user/' + encodeURIComponent(userId) + '?productId=' + encodeURIComponent(productId)));
+    } catch (e) { box.textContent = '请求失败: ' + e.message; }
+};
 </script>
 </body>
 </html>

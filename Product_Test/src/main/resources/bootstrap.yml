@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: product-test-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost}:${NACOS_SERVER_PORT:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        enabled: true
+        register-enabled: true
+        heart-beat-interval: 5000
+        heart-beat-timeout: 15000
+        ip-delete-timeout: 30000
+        instance-enabled: true
+        prefer-agent: false
+        healthy-check-interval: 3000
+        healthy-check-tolerant: true
+      config:
+        server-addr: ${NACOS_SERVER_ADDR:localhost}:${NACOS_SERVER_PORT:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        file-extension: yaml
+        enabled: true
+        refresh-enabled: true
+        max-size: 10485760
+        timeout: 3000
+        import-check:
+          enabled: false
+    sentinel:
+      eager: true
+      transport:
+        dashboard: ${SENTINEL_SERVER_ADDR:localhost}:${SENTINEL_DASHBOARD_PORT:8858}
+        port: 8719
+      filter:
+        enabled: true
+
+# 服务配置
+server:
+  port: ${SERVER_PORT:8081}
+
+# Actuator 配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    refresh:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}

@@ -3,57 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商品管理</title>
+    <title>商品列表 - 商城</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 24px; }
-        .container { max-width: 860px; margin: 0 auto; }
-        .card { background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.08); padding: 18px; margin-bottom: 16px; }
-        h1, h2 { margin-top: 0; }
-        .row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-        input { padding: 10px; border: 1px solid #d7dce6; border-radius: 6px; min-width: 180px; }
-        button { padding: 10px 14px; border: 0; border-radius: 6px; background: #2b6cff; color: #fff; cursor: pointer; }
-        pre { background: #0b1020; color: #d9e3ff; border-radius: 6px; padding: 10px; overflow-x: auto; min-height: 44px; }
-        .nav { margin-bottom: 10px; }
+        :root {
+            --primary: #ff5000;
+            --primary-hover: #ff6a00;
+            --bg: #f5f7fa;
+            --card-bg: #fff;
+            --text-main: #333;
+            --text-sub: #999;
+            --border: #eee;
+            --shadow: 0 8px 24px rgba(0,0,0,.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; background: var(--bg); color: var(--text-main); line-height: 1.6; }
+
+        .header {
+            background: linear-gradient(135deg, #ff5000, #ff9100);
+            color: #fff;
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 16px rgba(255,80,0,.3);
+        }
+        .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+        .logo { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+        .search-bar {
+            flex: 1;
+            max-width: 640px;
+            display: flex;
+            height: 36px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .search-bar input {
+            flex: 1;
+            border: none;
+            padding: 0 14px;
+            font-size: 14px;
+            outline: none;
+        }
+        .search-bar button {
+            background: #fff;
+            color: var(--primary);
+            border: none;
+            padding: 0 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 16px;
+            font-size: 14px;
+            opacity: .9;
+        }
+
+        .container { max-width: 1200px; margin: 16px auto; padding: 0 16px; }
+        .section-title { font-size: 18px; font-weight: 700; margin: 24px 0 12px; padding-left: 10px; border-left: 4px solid var(--primary); }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+        }
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform .2s, box-shadow .2s;
+            cursor: pointer;
+        }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.12); }
+        .p-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: linear-gradient(45deg,#f0f0f0,#e6e8eb); }
+        .p-body { padding: 12px; }
+        .p-title { font-size: 14px; font-weight: 600; line-height: 1.4; height: 40px; overflow: hidden; }
+        .p-tags { margin: 6px 0; }
+        .tag { display: inline-block; font-size: 11px; color: var(--primary); border: 1px solid var(--primary); padding: 1px 6px; border-radius: 6px; }
+        .p-price { color: var(--primary); font-size: 18px; font-weight: 700; }
+        .p-price small { font-size: 12px; }
+        .p-sales { color: var(--text-sub); font-size: 12px; }
+
+        .fab {
+            position: fixed;
+            right: 24px;
+            bottom: 32px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff5000, #ff9100);
+            color: #fff;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(255,80,0,.4);
+            cursor: pointer;
+            border: none;
+        }
+
+        .form-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+        .form-modal.open { display: flex; }
+        .modal {
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px;
+            width: 92%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.25);
+        }
+        .modal h3 { margin-bottom: 16px; }
+        .form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .form-row input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            min-width: 140px;
+        }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+
+        .result-panel {
+            margin-top: 12px;
+            background: #f8f9fb;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 13px;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .result-panel.show { display: block; }
+
+        @media (max-width: 600px) {
+            .header-inner { flex-wrap: wrap; gap: 8px; }
+            .search-bar { order: 3; flex: 100%; max-width: none; }
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .p-body { padding: 8px; }
+            .p-title { font-size: 13px; height: 36px; }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="nav">
-        <a href="/register.html">注册</a> |
-        <a href="/login.html">登录</a> |
-        <a href="/seckill.html">秒杀</a>
-    </div>
-    <h1>商品页面</h1>
 
-    <div class="card">
-        <h2>新增商品</h2>
-        <div class="row">
-            <input id="createName" placeholder="商品名，如 iPhone">
-            <input id="createPrice" placeholder="价格，如 6999">
-            <input id="createStatus" placeholder="状态，默认1" value="1">
-            <button id="createBtn">新增</button>
-        </div>
-        <pre id="createResult"></pre>
-    </div>
-
-    <div class="card">
-        <h2>按ID查询详情</h2>
-        <div class="row">
-            <input id="detailId" placeholder="商品ID" value="1">
-            <button id="detailBtn">查询详情</button>
-        </div>
-        <pre id="detailResult"></pre>
-    </div>
-
-    <div class="card">
-        <h2>关键词搜索</h2>
-        <div class="row">
-            <input id="searchKeyword" placeholder="关键词，如 Demo">
+<div class="header">
+    <div class="header-inner">
+        <div class="logo">🛒 极速购</div>
+        <div class="search-bar">
+            <input id="searchKeyword" placeholder="搜索商品，如 Demo">
             <button id="searchBtn">搜索</button>
         </div>
-        <pre id="searchResult"></pre>
+        <div class="nav-links">
+            <a href="/seckill.html">秒杀</a>
+            <a href="#" onclick="openModal()">发布商品</a>
+        </div>
     </div>
 </div>
+
+<div class="container">
+    <div class="section-title">推荐商品</div>
+    <div class="product-grid" id="productGrid">加载中...</div>
+</div>
+
+<!-- 新增商品弹窗 -->
+<div class="form-modal" id="formModal">
+    <div class="modal">
+        <h3>发布新商品</h3>
+        <div class="form-row">
+            <input id="createName" placeholder="商品名称，如 iPhone 15">
+            <input id="createPrice" placeholder="价格，如 6999">
+            <input id="createStatus" placeholder="状态（默认1）" value="1">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+            <button class="btn btn-primary" id="createBtn">立即发布</button>
+        </div>
+        <pre id="createResult" class="result-panel"></pre>
+    </div>
+</div>
+
+<script>
+function pretty(obj) { return JSON.stringify(obj, null, 2); }
+async function request(url, options) {
+    const resp = await fetch(url, options);
+    return await resp.json();
+}
+function showPanel(id, html) {
+    const el = document.getElementById(id);
+    el.textContent = html;
+    el.classList.add('show');
+}
+function openModal() { document.getElementById('formModal').classList.add('open'); }
+function closeModal() { document.getElementById('formModal').classList.remove('open'); }
+
+// 搜索
+document.getElementById('searchBtn').addEventListener('click', async () => {
+    const kw = document.getElementById('searchKeyword').value.trim();
+    const data = await request('/api/products/search?keyword=' + encodeURIComponent(kw));
+    renderProducts(data.data || []);
+});
+
+// 新增商品
+document.getElementById('createBtn').addEventListener('click', async () => {
+    const payload = {
+        productName: document.getElementById('createName').value.trim(),
+        price: Number(document.getElementById('createPrice').value),
+        status: Number(document.getElementById('createStatus').value || '1')
+    };
+    try {
+        const res = await request('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        showPanel('createResult', pretty(res));
+        if (res.code === 0) closeModal();
+    } catch (e) {
+        showPanel('createResult', '请求失败: ' + e.message);
+    }
+});
+
+// 渲染商品卡片
+function renderProducts(list) {
+    const grid = document.getElementById('productGrid');
+    if (!list || list.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;padding:24px;text-align:center;color:#999;">暂无商品</div>';
+        return;
+    }
+    grid.innerHTML = list.map(p => `
+        <div class="product-card" onclick="location='/product.html?id=${p.id}'">
+            <img class="p-img" src="https://picsum.photos/400?random=${p.id}" alt="商品图">
+            <div class="p-body">
+                <div class="p-title">${p.productName}</div>
+                <div class="p-tags"><span class="tag">正品保障</span></div>
+                <div class="p-price"><small>¥</small>${p.price.toFixed(2)}</div>
+                <div class="p-sales">已售 999+</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 初始加载前4个商品
+(async () => {
+    try {
+        const data = await request('/api/products/search?keyword=');
+        renderProducts((data.data || []).slice(0, 8));
+    } catch (e) {
+        document.getElementById('productGrid').innerHTML = '加载失败';
+    }
+})();
+</script>
+</body>
+</html>
 
 <script>
     function pretty(obj) {
