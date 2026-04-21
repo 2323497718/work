@@ -3,27 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高并发读 - 动静分离演示</title>
+    <title>极速购 - 首页</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-<main class="container">
-    <h1>Nginx 动静分离 + 负载均衡演示</h1>
-    <p>当前页面是静态资源，由 Nginx 直接返回。</p>
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">🛒 极速购</div>
+        <div class="search-bar">
+            <input id="searchInput" placeholder="搜索商品，如 Demo">
+            <button id="searchBtn">搜索</button>
+        </div>
+        <nav class="nav-links">
+            <a href="/product.html">商品广场</a>
+            <a href="/seckill.html">⚡ 秒杀</a>
+        </nav>
+    </div>
+</header>
 
-    <section class="card">
-        <h2>商品详情（动态 API）</h2>
-        <input id="productId" value="1" />
-        <button id="queryBtn">查询 /api/products/{id}</button>
-        <pre id="result"></pre>
+<main class="container">
+    <section class="hero">
+        <div class="hero-text">
+            <h1>品质好货 · 限时秒杀</h1>
+            <p>精选商品，每日 10:00 / 20:00 准时开抢</p>
+            <a href="/seckill.html" class="btn-large">进入秒杀会场</a>
+        </div>
     </section>
 
     <section class="card">
-        <h2>后端实例请求统计</h2>
-        <button id="statsBtn">查询 /api/system/stats</button>
-        <pre id="stats"></pre>
+        <h2 class="section-title">🔥 热门推荐</h2>
+        <div class="grid" id="hotGrid">加载中...</div>
     </section>
 </main>
-<script src="/static/app.js"></script>
+
+<footer class="footer">
+    <div>© 2026 极速购 | 高并发秒杀演示项目</div>
+</footer>
+
+<script>
+async function request(url, init) {
+    const r = await fetch(url, init);
+    return await r.json();
+}
+function renderGrid(containerId, list) {
+    const el = document.getElementById(containerId);
+    if (!list || list.length === 0) {
+        el.innerHTML = '<div class="empty">暂无商品</div>';
+        return;
+    }
+    el.innerHTML = list.map(p => `
+        <div class="card product-card" onclick="location='/product.html?id=${p.id}'">
+            <img class="img" src="https://picsum.photos/400?random=${p.id}" alt="商品图">
+            <div class="body">
+                <div class="title">${p.productName}</div>
+                <div class="tags"><span class="tag">正品保障</span></div>
+                <div class="row"><div class="price"><small>¥</small>${p.price.toFixed(2)}</div><div class="orig">¥${(p.price*1.2).toFixed(2)}</div></div>
+                <div class="meta"><span>已售 999+</span></div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 搜索
+document.getElementById('searchBtn').onclick = () => {
+    const kw = document.getElementById('searchInput').value.trim();
+    request('/api/products/search?keyword=' + encodeURIComponent(kw)).then(data => {
+        renderGrid('hotGrid', data.data || []);
+    });
+};
+
+// 初始加载
+request('/api/products/search?keyword=').then(data => {
+    renderGrid('hotGrid', (data.data || []).slice(0, 8));
+});
+</script>
 </body>
 </html>
