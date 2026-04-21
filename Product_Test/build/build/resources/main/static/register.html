@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 24px; }
+        .card { max-width: 420px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.08); padding: 24px; }
+        h1 { margin-top: 0; font-size: 24px; }
+        .row { margin-bottom: 14px; }
+        label { display: block; margin-bottom: 6px; color: #333; }
+        input { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #d7dce6; border-radius: 6px; }
+        button { width: 100%; padding: 10px; border: 0; border-radius: 6px; background: #2b6cff; color: #fff; font-size: 15px; cursor: pointer; }
+        .msg { margin-top: 12px; min-height: 20px; font-size: 14px; }
+        .ok { color: #0f7b2b; }
+        .err { color: #c62828; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>用户注册</h1>
+    <div class="row">
+        <label for="username">用户名</label>
+        <input id="username" placeholder="请输入用户名（4-32位）">
+    </div>
+    <div class="row">
+        <label for="password">密码</label>
+        <input id="password" type="password" placeholder="请输入密码（6-64位）">
+    </div>
+    <div class="row">
+        <label for="email">邮箱</label>
+        <input id="email" placeholder="请输入邮箱">
+    </div>
+    <button id="submitBtn">注册</button>
+    <div id="msg" class="msg"></div>
+    <div style="margin-top: 10px; text-align: right;">
+        <a href="/login.html">已有账号？去登录</a> |
+        <a href="/product.html">商品页</a> |
+        <a href="/seckill.html">秒杀页</a>
+    </div>
+</div>
+<script>
+    const btn = document.getElementById("submitBtn");
+    const msg = document.getElementById("msg");
+
+    function showMessage(text, ok) {
+        msg.textContent = text;
+        msg.className = "msg " + (ok ? "ok" : "err");
+    }
+
+    btn.addEventListener("click", async () => {
+        const payload = {
+            username: document.getElementById("username").value.trim(),
+            password: document.getElementById("password").value,
+            email: document.getElementById("email").value.trim()
+        };
+
+        try {
+            const resp = await fetch("/api/users/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.code === 0) {
+                showMessage("注册成功，用户ID: " + data.data.userId, true);
+            } else {
+                showMessage("注册失败: " + data.message, false);
+            }
+        } catch (e) {
+            showMessage("请求失败，请确认后端已启动", false);
+        }
+    });
+</script>
+</body>
+</html>
